@@ -1,0 +1,9 @@
+CMakeLists.txt.user
+/Build/
+/Debug/
+/Release/
+/clang/
+/xcode/
+/x64/
+.settings
+.vscode

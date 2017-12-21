@@ -1,10 +1,14 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.8)
 
-project(DISCOUNT C)
+project(DISCOUNT C CXX)
 
-get_filename_component(_ROOT "${CMAKE_CURRENT_LIST_DIR}" PATH)
+OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
+set(LIB_TYPE STATIC)
+if(BUILD_SHARED_LIBS)
+    set(LIB_TYPE SHARED)
+endif(BUILD_SHARED_LIBS)
 
-file(READ "${_ROOT}/VERSION" ${PROJECT_NAME}_VERSION)
+file(READ "${DISCOUNT_SOURCE_DIR}/VERSION" ${PROJECT_NAME}_VERSION)
 string(STRIP "${${PROJECT_NAME}_VERSION}" ${PROJECT_NAME}_VERSION)
 
 set(${PROJECT_NAME}_WITH_TABSTOPS "4" CACHE STRING
@@ -93,76 +97,79 @@ if(NOT HAVE_S_ISCHR OR NOT HAVE_S_ISFIFO OR NOT HAVE_S_ISSOCK)
     set(HAVE_STAT "")
 endif()
 
-configure_file(config.h.in
-    "${_ROOT}/config.h"
+configure_file(${DISCOUNT_SOURCE_DIR}/cmake/config.h.in
+    "config.h"
     @ONLY)
 
-configure_file("${_ROOT}/version.c.in"
-    "${_ROOT}/version.c"
+configure_file("${DISCOUNT_SOURCE_DIR}/version.c.in"
+    "${DISCOUNT_BINARY_DIR}/version.c"
     @ONLY)
-set_property(SOURCE "${_ROOT}/version.c" APPEND PROPERTY COMPILE_DEFINITIONS
+set_property(SOURCE "${DISCOUNT_BINARY_DIR}/version.c" APPEND PROPERTY COMPILE_DEFINITIONS
     BRANCH=""
     VERSION="${${PROJECT_NAME}_VERSION}")
 
-configure_file("${_ROOT}/mkdio.h.in"
-    "${_ROOT}/mkdio.h"
+configure_file("${DISCOUNT_SOURCE_DIR}/mkdio.h.in"
+    "${DISCOUNT_BINARY_DIR}/mkdio.h"
     @ONLY)
 
-include_directories("${_ROOT}")
+include_directories("${DISCOUNT_SOURCE_DIR}")
+include_directories("${DISCOUNT_BINARY_DIR}")
 
 add_executable(mktags
-    "${_ROOT}/mktags.c")
+    "${DISCOUNT_SOURCE_DIR}/mktags.c")
 
-add_custom_command(OUTPUT "${_ROOT}/blocktags"
-    COMMAND mktags > blocktags
-    WORKING_DIRECTORY "${_ROOT}")
+add_custom_command(OUTPUT "${DISCOUNT_BINARY_DIR}/blocktags"
+    COMMAND mktags > ${DISCOUNT_BINARY_DIR}/blocktags
+    WORKING_DIRECTORY "${DISCOUNT_SOURCE_DIR}")
 
-add_library(libmarkdown
-    "${_ROOT}/mkdio.c"
-    "${_ROOT}/markdown.c"
-    "${_ROOT}/dumptree.c"
-    "${_ROOT}/generate.c"
-    "${_ROOT}/resource.c"
-    "${_ROOT}/docheader.c"
-    "${_ROOT}/version.c"
-    "${_ROOT}/toc.c"
-    "${_ROOT}/css.c"
-    "${_ROOT}/xml.c"
-    "${_ROOT}/Csio.c"
-    "${_ROOT}/xmlpage.c"
-    "${_ROOT}/basename.c"
-    "${_ROOT}/emmatch.c"
-    "${_ROOT}/github_flavoured.c"
-    "${_ROOT}/setup.c"
-    "${_ROOT}/blocktags" "${_ROOT}/tags.c"
-    "${_ROOT}/html5.c"
-    "${_ROOT}/flags.c")
-
-set_target_properties(libmarkdown PROPERTIES
-    OUTPUT_NAME markdown)
-
-add_library(common OBJECT
-    "${_ROOT}/pgm_options.c"
-    "${_ROOT}/gethopt.c")
+add_library(libmarkdown ${LIB_TYPE}
+    "${DISCOUNT_SOURCE_DIR}/mkdio.c"
+    "${DISCOUNT_SOURCE_DIR}/markdown.c"
+    "${DISCOUNT_SOURCE_DIR}/dumptree.c"
+    "${DISCOUNT_SOURCE_DIR}/generate.c"
+    "${DISCOUNT_SOURCE_DIR}/resource.c"
+    "${DISCOUNT_SOURCE_DIR}/docheader.c"
+    "${DISCOUNT_BINARY_DIR}/version.c"
+    "${DISCOUNT_SOURCE_DIR}/toc.c"
+    "${DISCOUNT_SOURCE_DIR}/css.c"
+    "${DISCOUNT_SOURCE_DIR}/xml.c"
+    "${DISCOUNT_SOURCE_DIR}/Csio.c"
+    "${DISCOUNT_SOURCE_DIR}/xmlpage.c"
+    "${DISCOUNT_SOURCE_DIR}/basename.c"
+    "${DISCOUNT_SOURCE_DIR}/emmatch.c"
+    "${DISCOUNT_SOURCE_DIR}/github_flavoured.c"
+    "${DISCOUNT_SOURCE_DIR}/setup.c"
+    "${DISCOUNT_BINARY_DIR}/blocktags" 
+    "${DISCOUNT_SOURCE_DIR}/tags.c"
+    "${DISCOUNT_SOURCE_DIR}/html5.c"
+    "${DISCOUNT_SOURCE_DIR}/flags.c"
+    "${DISCOUNT_SOURCE_DIR}/pgm_options.c"
+    "${DISCOUNT_SOURCE_DIR}/gethopt.c"
+)
 
 add_executable(markdown
-    "${_ROOT}/main.c"
-    $<TARGET_OBJECTS:common>)
+    "${DISCOUNT_SOURCE_DIR}/main.c"
+    )
 
 target_link_libraries(markdown PRIVATE libmarkdown)
 
 add_executable(mkd2html
-    "${_ROOT}/mkd2html.c"
-    $<TARGET_OBJECTS:common>
-    "${_ROOT}/notspecial.c")
+    "${DISCOUNT_SOURCE_DIR}/mkd2html.c"
+    "${DISCOUNT_SOURCE_DIR}/notspecial.c")
 
 target_link_libraries(mkd2html PRIVATE libmarkdown)
 
 add_executable(makepage
-    "${_ROOT}/makepage.c"
-    $<TARGET_OBJECTS:common>)
+    "${DISCOUNT_SOURCE_DIR}/makepage.c"
+    )
 
 target_link_libraries(makepage PRIVATE libmarkdown)
+
+add_executable(cpp_example
+    "${DISCOUNT_SOURCE_DIR}/examples/cpp/cpp_example.cpp")
+
+target_link_libraries(cpp_example PRIVATE libmarkdown)
+
 
 if(${PROJECT_NAME}_MAKE_INSTALL)
     string(TOLOWER ${PROJECT_NAME} _PACKAGE_NAME)
@@ -172,10 +179,10 @@ if(${PROJECT_NAME}_MAKE_INSTALL)
             "${CMAKE_INSTALL_LIBDIR}/cmake/${_PACKAGE_NAME}"
             CACHE STRING "CMake packages")
     endif()
-    install(FILES "${_ROOT}/mkdio.h"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    install(FILES "${DISCOUNT_BINARY_DIR}/mkdio.h"
+        DESTINATION "include/discount")
     target_include_directories(libmarkdown INTERFACE
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+      $<INSTALL_INTERFACE:include/discount>
     )
     set(_TARGETS libmarkdown markdown)
     if(${PROJECT_NAME}_INSTALL_SAMPLES)
@@ -194,7 +201,7 @@ if(${PROJECT_NAME}_MAKE_INSTALL)
       VERSION ${${PROJECT_NAME}_VERSION}
       COMPATIBILITY AnyNewerVersion
     )
-    configure_file("${CMAKE_CURRENT_LIST_DIR}/discount-config.cmake.in"
+    configure_file("${DISCOUNT_SOURCE_DIR}/cmake/discount-config.cmake.in"
         "${CMAKE_CURRENT_BINARY_DIR}/${_PACKAGE_NAME}-config.cmake"
         @ONLY)
     install(FILES
@@ -205,4 +212,4 @@ if(${PROJECT_NAME}_MAKE_INSTALL)
     unset(_PACKAGE_NAME)
 endif()
 
-unset(_ROOT)
+
