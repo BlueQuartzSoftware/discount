@@ -179,7 +179,7 @@ if(${PROJECT_NAME}_MAKE_INSTALL)
     install(FILES "${DISCOUNT_BINARY_DIR}/mkdio.h"
         DESTINATION "include/discount")
     target_include_directories(libmarkdown INTERFACE
-      $<INSTALL_INTERFACE:include/discount>
+      $<INSTALL_INTERFACE:include>
     )
     set(_TARGETS libmarkdown markdown)
     if(${PROJECT_NAME}_INSTALL_SAMPLES)
