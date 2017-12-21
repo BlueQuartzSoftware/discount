@@ -2,11 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 
 project(DISCOUNT C CXX)
 
-OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 set(LIB_TYPE STATIC)
-if(BUILD_SHARED_LIBS)
-    set(LIB_TYPE SHARED)
-endif(BUILD_SHARED_LIBS)
 
 file(READ "${DISCOUNT_SOURCE_DIR}/VERSION" ${PROJECT_NAME}_VERSION)
 string(STRIP "${${PROJECT_NAME}_VERSION}" ${PROJECT_NAME}_VERSION)
@@ -146,6 +142,7 @@ add_library(libmarkdown ${LIB_TYPE}
     "${DISCOUNT_SOURCE_DIR}/pgm_options.c"
     "${DISCOUNT_SOURCE_DIR}/gethopt.c"
 )
+
 
 add_executable(markdown
     "${DISCOUNT_SOURCE_DIR}/main.c"
