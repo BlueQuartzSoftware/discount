@@ -142,15 +142,22 @@ add_library(libmarkdown ${LIB_TYPE}
     "${DISCOUNT_SOURCE_DIR}/pgm_options.c"
     "${DISCOUNT_SOURCE_DIR}/gethopt.c"
 )
-set_target_properties(libmarkdown PROPERTIES
-    OUTPUT_NAME markdown)
 
+set_target_properties(libmarkdown
+    PROPERTIES
+    DEBUG_OUTPUT_NAME markdown_debug
+    RELEASE_OUTPUT_NAME markdown
+)
 
 add_executable(markdown
     "${DISCOUNT_SOURCE_DIR}/main.c"
     )
-
 target_link_libraries(markdown PRIVATE libmarkdown)
+set_target_properties( markdown
+    PROPERTIES
+    DEBUG_OUTPUT_NAME markdown_debug
+    RELEASE_OUTPUT_NAME markdown
+)
 
 add_executable(mkd2html
     "${DISCOUNT_SOURCE_DIR}/mkd2html.c"
