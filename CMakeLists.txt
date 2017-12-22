@@ -142,7 +142,8 @@ add_library(libmarkdown ${LIB_TYPE}
     "${DISCOUNT_SOURCE_DIR}/pgm_options.c"
     "${DISCOUNT_SOURCE_DIR}/gethopt.c"
 )
-
+set_target_properties(libmarkdown PROPERTIES
+    OUTPUT_NAME markdown)
 set_target_properties(libmarkdown
     PROPERTIES
     DEBUG_OUTPUT_NAME markdown_debug
