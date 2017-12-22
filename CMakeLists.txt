@@ -142,6 +142,8 @@ add_library(libmarkdown ${LIB_TYPE}
     "${DISCOUNT_SOURCE_DIR}/pgm_options.c"
     "${DISCOUNT_SOURCE_DIR}/gethopt.c"
 )
+set_target_properties(libmarkdown PROPERTIES
+    OUTPUT_NAME markdown)
 
 
 add_executable(markdown
